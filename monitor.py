@@ -58,11 +58,22 @@ if __name__ == "__main__":
                                           UInt64, queue_size=20))
 
   while not rospy.is_shutdown():
-    for node in rosnode.get_node_names():
+    try:
+      node_names = rosnode.get_node_names()
+    except ROSNodeIOException as ex:
+      rospy.logerr('Rosnode thinks it cannot communicate with master!')
+      rospy.sleep(poll_period)
+      continue
+
+    for node in node_names:
       if node in node_map or node in ignored_nodes:
         continue
 
-      node_api = rosnode.get_api_uri(master, node)[2]
+      try:
+        node_api = rosnode.get_api_uri(master, node)[2]
+      except ROSNodeIOException as ex:
+        rospy.logerr('Rosnode thinks it cannot communicate with master!')
+        continue
       if not node_api:
         rospy.logerr("[cpu monitor] failed to get api of node %s (%s)" % (node, node_api))
         continue
