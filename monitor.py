@@ -40,9 +40,12 @@ if __name__ == "__main__":
 
   poll_period = rospy.get_param('~poll_period', 1.0)
 
+  try_until_ignore = rospy.get_param('~try_until_ignore', 10)
+
   this_ip = os.environ.get("ROS_IP")
 
   node_map = {}
+  node_tries = {}
   ignored_nodes = set()
 
   cpu_publish = rospy.Publisher("~total_cpu", Float32, queue_size=20)
@@ -75,7 +78,9 @@ if __name__ == "__main__":
         rospy.logerr('Rosnode thinks it cannot communicate with master!')
         continue
       if not node_api:
-        rospy.logerr("[cpu monitor] failed to get api of node %s (%s)" % (node, node_api))
+        if node_tries[node] <= try_until_ignore:
+          rospy.logerr("[cpu monitor] failed to get api of node %s (%s)" % (node, node_api))
+        node_tries[node] = node_tries.get(node, 0) + 1
         continue
 
       ros_ip = node_api[7:] # strip http://
