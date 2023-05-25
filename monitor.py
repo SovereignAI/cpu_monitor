@@ -78,9 +78,9 @@ if __name__ == "__main__":
         rospy.logerr('Rosnode thinks it cannot communicate with master!')
         continue
       if not node_api:
+        node_tries[node] = node_tries.get(node, 0) + 1
         if node_tries[node] <= try_until_ignore:
           rospy.logerr("[cpu monitor] failed to get api of node %s (%s)" % (node, node_api))
-        node_tries[node] = node_tries.get(node, 0) + 1
         continue
 
       ros_ip = node_api[7:] # strip http://
